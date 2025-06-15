@@ -2,445 +2,247 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Merge Images Online</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Image Border Editor</title>
   <style>
-    * { box-sizing: border-box; }
     body {
-      font-family: 'Segoe UI', sans-serif;
-      background: #f5f6f7;
-      margin: 0;
-      padding: 30px;
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background: #f0f2f5;
+      color: #333;
     }
 
     h1 {
       text-align: center;
-      font-size: 1.8rem;
       margin-bottom: 30px;
     }
 
-    .main {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 30px;
-      max-width: 1200px;
+    .editor-container {
+      max-width: 600px;
       margin: auto;
-    }
-
-    .tool-panel, .preview-panel {
       background: #fff;
-      padding: 25px;
+      padding: 20px;
       border-radius: 12px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
     }
 
-    .form-group {
+    .preview {
+      display: flex;
+      justify-content: center;
       margin-bottom: 20px;
     }
 
-    label {
-      font-weight: 500;
-      display: block;
-      margin-bottom: 8px;
-    }
-
-    .image-upload-box {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .image-preview {
-      width: 60px;
-      height: 60px;
-      border-radius: 8px;
-      object-fit: cover;
-      border: 1px solid #ddd;
-    }
-
-    .remove-btn {
-      background: #ff4444;
-      color: #fff;
-      border: none;
-      padding: 4px 10px;
-      border-radius: 6px;
-      font-size: 13px;
-      cursor: pointer;
-      display: none;
-    }
-
-    .custom-file {
-      flex-grow: 1;
-      position: relative;
-      height: 44px;
-      border: 2px dashed #ccc;
-      border-radius: 8px;
-      background: #f9f9f9;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-    }
-
-    .custom-file input[type="file"] {
-      position: absolute;
-      opacity: 0;
-      width: 100%;
-      height: 100%;
-      cursor: pointer;
-    }
-
-    .custom-file span {
-      pointer-events: none;
-      font-size: 14px;
-      color: #555;
-    }
-
-    select, input[type="color"], input[type="range"] {
-      width: 100%;
-      padding: 10px;
-      border-radius: 8px;
-      border: 1px solid #ccc;
-      font-size: 15px;
-    }
-
-    canvas {
+    .preview img {
       max-width: 100%;
-      margin-top: 20px;
-      border-radius: 12px;
-      background: #f3f3f3;
+      height: auto;
+      border-style: solid;
     }
 
-    .actions {
-      margin-top: 20px;
-      text-align: center;
-    }
-
-    .actions button {
-      padding: 12px 20px;
-      font-size: 15px;
-      border: none;
-      border-radius: 8px;
-      margin: 5px;
-      cursor: pointer;
-    }
-
-    .download-btn {
-      background-color: #007bff;
-      color: #fff;
-    }
-
-    .copy-btn {
-      background-color: #28a745;
-      color: #fff;
-    }
-
-    .download-options {
+    .controls {
       display: flex;
-      gap: 10px;
-      justify-content: center;
-      flex-wrap: wrap;
+      flex-direction: column;
+      gap: 15px;
     }
 
-    .direction-toggle {
-      display: flex;
-      gap: 10px;
+    label {
+      font-weight: 600;
+      margin-bottom: 5px;
+      display: block;
     }
 
-    .direction-btn {
-      background: #eee;
-      border: 2px solid #ccc;
-      padding: 10px;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: 0.2s;
+    input[type="file"],
+    input[type="color"],
+    input[type="range"] {
+      width: 100%;
     }
 
-    .direction-btn.active {
-      background-color: #007bff;
-      border-color: #007bff;
-      color: white;
-    }
-
-    details {
+    details.advanced-options {
       border: 1px solid #ccc;
       border-radius: 8px;
-      padding: 10px;
-      margin-top: 10px;
-      background-color: #f7f7f7;
+      margin-top: 20px;
+      background-color: #f9f9f9;
+      padding: 12px 16px;
     }
 
-    summary {
+    details.advanced-options[open] {
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+    }
+
+    details.advanced-options summary {
       font-weight: 600;
-      cursor: pointer;
       font-size: 16px;
+      cursor: pointer;
+      list-style: none;
+      margin: -12px -16px 10px;
+      padding: 12px 16px;
+      background: #eaeaea;
+      border-radius: 8px 8px 0 0;
     }
 
-    @media (max-width: 768px) {
-      .main {
-        grid-template-columns: 1fr;
+    .advanced-options .option-row {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      margin-bottom: 15px;
+    }
+
+    .advanced-options label {
+      min-width: 120px;
+      margin: 0;
+      font-weight: 500;
+    }
+
+    .advanced-options input[type="color"] {
+      width: 50px;
+      height: 36px;
+      border: none;
+      background: none;
+      padding: 0;
+      border-radius: 6px;
+    }
+
+    .range-container {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .range-container input[type="range"] {
+      flex: 1;
+    }
+
+    .range-value {
+      font-weight: bold;
+      width: 35px;
+      text-align: right;
+    }
+
+    @media (max-width: 600px) {
+      .advanced-options .option-row {
+        flex-direction: column;
+        align-items: flex-start;
       }
+    }
+
+    .btn-group {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    button {
+      padding: 10px 18px;
+      font-size: 16px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      background: #007bff;
+      color: #fff;
+      transition: background 0.3s ease;
+    }
+
+    button:hover {
+      background: #0056b3;
     }
   </style>
 </head>
 <body>
 
-<h1>Merge Images Online</h1>
+  <h1>Image Border Editor</h1>
 
-<div class="main">
-  <div class="tool-panel">
-    <div class="form-group">
-      <label>Upload First Image</label>
-      <div class="image-upload-box">
-        <img id="img1-preview" class="image-preview" style="display:none" />
-        <div class="custom-file">
-          <input type="file" id="img1" accept="image/*" />
-          <span id="img1-label">Choose Image</span>
+  <div class="editor-container">
+    <div class="preview">
+      <img id="imagePreview" src="" alt="Your Image" style="display: none;" />
+    </div>
+
+    <div class="controls">
+      <label for="imageUpload">Upload Image</label>
+      <input type="file" id="imageUpload" accept="image/*" />
+
+      <details class="advanced-options">
+        <summary>Advanced Options</summary>
+
+        <div class="option-row">
+          <label for="borderColor">Border Color</label>
+          <input type="color" id="borderColor" value="#000000" />
         </div>
-        <button class="remove-btn" id="remove1" onclick="removeImage(1)">❌</button>
-      </div>
-    </div>
 
-    <div class="form-group">
-      <label>Upload Second Image</label>
-      <div class="image-upload-box">
-        <img id="img2-preview" class="image-preview" style="display:none" />
-        <div class="custom-file">
-          <input type="file" id="img2" accept="image/*" />
-          <span id="img2-label">Choose Image</span>
+        <div class="option-row">
+          <label for="borderThickness">Border Thickness</label>
+          <div class="range-container">
+            <input type="range" id="borderThickness" min="0" max="20" value="0" />
+            <span class="range-value" id="borderVal">0px</span>
+          </div>
         </div>
-        <button class="remove-btn" id="remove2" onclick="removeImage(2)">❌</button>
-      </div>
+      </details>
     </div>
 
-    <div class="form-group">
-      <label>Merge Direction</label>
-      <div class="direction-toggle">
-        <button id="horizontalBtn" class="direction-btn active" data-layout="horizontal">Horizontal</button>
-        <button id="verticalBtn" class="direction-btn" data-layout="vertical">Vertical</button>
-      </div>
+    <div class="btn-group">
+      <button id="downloadBtn">Download</button>
     </div>
-
-    <details>
-      <summary>Advanced Options</summary>
-      <div class="form-group" style="margin-top: 15px;">
-        <label>Border Color</label>
-        <input type="color" id="borderColor" value="#000000" />
-      </div>
-
-      <div class="form-group">
-        <label>Border Thickness (<span id="borderVal">0</span>px)</label>
-        <input type="range" id="borderThickness" min="0" max="20" value="0" />
-      </div>
-    </details>
   </div>
 
-  <div class="preview-panel">
-    <canvas id="previewCanvas"></canvas>
-    <div class="actions">
-      <div class="download-options">
-        <button class="download-btn" data-format="png" disabled>Download PNG</button>
-        <button class="download-btn" data-format="jpeg" disabled>Download JPG</button>
-        <button class="download-btn" data-format="webp" disabled>Download WebP</button>
-      </div>
-      <button id="copyBtn" class="copy-btn" disabled>Copy to Clipboard</button>
-    </div>
-  </div>
-</div>
+  <script>
+    const imageUpload = document.getElementById("imageUpload");
+    const imagePreview = document.getElementById("imagePreview");
+    const borderColorInput = document.getElementById("borderColor");
+    const borderThicknessInput = document.getElementById("borderThickness");
+    const borderVal = document.getElementById("borderVal");
+    const downloadBtn = document.getElementById("downloadBtn");
 
-<script>
-  const img1Input = document.getElementById("img1");
-  const img2Input = document.getElementById("img2");
-  const img1Preview = document.getElementById("img1-preview");
-  const img2Preview = document.getElementById("img2-preview");
-  const borderThicknessInput = document.getElementById("borderThickness");
-  const borderColorInput = document.getElementById("borderColor");
-  const borderVal = document.getElementById("borderVal");
-  const canvas = document.getElementById("previewCanvas");
-  const ctx = canvas.getContext("2d");
-  const copyBtn = document.getElementById("copyBtn");
-  const downloadBtns = document.querySelectorAll(".download-btn");
+    function updatePreview() {
+      const color = borderColorInput.value;
+      const thickness = borderThicknessInput.value;
 
-  const img1Label = document.getElementById("img1-label");
-  const img2Label = document.getElementById("img2-label");
-  const remove1Btn = document.getElementById("remove1");
-  const remove2Btn = document.getElementById("remove2");
-
-  let img1 = new Image();
-  let img2 = new Image();
-  let img1Loaded = false;
-  let img2Loaded = false;
-
-  let layout = "horizontal";
-  const horizontalBtn = document.getElementById("horizontalBtn");
-  const verticalBtn = document.getElementById("verticalBtn");
-
-  horizontalBtn.addEventListener("click", () => {
-    layout = "horizontal";
-    horizontalBtn.classList.add("active");
-    verticalBtn.classList.remove("active");
-    updatePreview();
-  });
-
-  verticalBtn.addEventListener("click", () => {
-    layout = "vertical";
-    verticalBtn.classList.add("active");
-    horizontalBtn.classList.remove("active");
-    updatePreview();
-  });
-
-  function removeImage(num) {
-    if (num === 1) {
-      img1Input.value = "";
-      img1Preview.style.display = "none";
-      img1Label.textContent = "Choose Image";
-      remove1Btn.style.display = "none";
-      img1Loaded = false;
-    } else {
-      img2Input.value = "";
-      img2Preview.style.display = "none";
-      img2Label.textContent = "Choose Image";
-      remove2Btn.style.display = "none";
-      img2Loaded = false;
-    }
-    updatePreview();
-  }
-
-  function handleImageUpload(input, image, label, preview, removeBtn, onLoad) {
-    const file = input.files[0];
-    if (file && file.type.startsWith("image/")) {
-      label.textContent = file.name;
-      const reader = new FileReader();
-      reader.onload = function (e) {
-        image.src = e.target.result;
-        preview.src = e.target.result;
-        preview.style.display = "block";
-        removeBtn.style.display = "inline-block";
-        image.onload = onLoad;
-      };
-      reader.readAsDataURL(file);
-    }
-  }
-
-  function resizeImage(img, width, height) {
-    const tempCanvas = document.createElement("canvas");
-    tempCanvas.width = width;
-    tempCanvas.height = height;
-    tempCanvas.getContext("2d").drawImage(img, 0, 0, width, height);
-    const newImg = new Image();
-    newImg.src = tempCanvas.toDataURL();
-    return newImg;
-  }
-
-  function updatePreview() {
-    if (!img1Loaded || !img2Loaded) {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      downloadBtns.forEach(btn => btn.disabled = true);
-      copyBtn.disabled = true;
-      return;
+      imagePreview.style.borderColor = color;
+      imagePreview.style.borderWidth = thickness + "px";
+      borderVal.textContent = thickness + "px";
     }
 
-    const border = parseInt(borderThicknessInput.value);
-    const color = borderColorInput.value;
+    imageUpload.addEventListener("change", (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function (event) {
+          imagePreview.src = event.target.result;
+          imagePreview.style.display = "block";
+          updatePreview();
+        };
+        reader.readAsDataURL(file);
+      }
+    });
 
-    let a = img1, b = img2;
+    borderColorInput.addEventListener("input", updatePreview);
+    borderThicknessInput.addEventListener("input", updatePreview);
 
-    if (layout === "horizontal") {
-      const h = Math.max(a.height, b.height);
-      a = resizeImage(a, (a.width * h) / a.height, h);
-      b = resizeImage(b, (b.width * h) / b.height, h);
-    } else {
-      const w = Math.max(a.width, b.width);
-      a = resizeImage(a, w, (a.height * w) / a.width);
-      b = resizeImage(b, w, (b.height * w) / b.width);
-    }
+    downloadBtn.addEventListener("click", () => {
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
 
-    a.onload = () => {
-      b.onload = () => {
-        let width, height;
-        if (layout === "horizontal") {
-          width = a.width + b.width + border * 3;
-          height = a.height + border * 2;
-        } else {
-          width = a.width + border * 2;
-          height = a.height + b.height + border * 3;
-        }
+      const img = new Image();
+      img.onload = () => {
+        const thickness = parseInt(borderThicknessInput.value);
+        const width = img.width + thickness * 2;
+        const height = img.height + thickness * 2;
 
         canvas.width = width;
         canvas.height = height;
 
-        ctx.fillStyle = color;
+        ctx.fillStyle = borderColorInput.value;
         ctx.fillRect(0, 0, width, height);
+        ctx.drawImage(img, thickness, thickness);
 
-        if (layout === "horizontal") {
-          ctx.drawImage(a, border, border);
-          ctx.drawImage(b, a.width + border * 2, border);
-        } else {
-          ctx.drawImage(a, border, border);
-          ctx.drawImage(b, border, a.height + border * 2);
-        }
-
-        downloadBtns.forEach(btn => btn.disabled = false);
-        copyBtn.disabled = false;
-      };
-    };
-  }
-
-  img1Input.addEventListener("change", () => {
-    handleImageUpload(img1Input, img1, img1Label, img1Preview, remove1Btn, () => {
-      img1Loaded = true;
-      updatePreview();
-    });
-  });
-
-  img2Input.addEventListener("change", () => {
-    handleImageUpload(img2Input, img2, img2Label, img2Preview, remove2Btn, () => {
-      img2Loaded = true;
-      updatePreview();
-    });
-  });
-
-  borderColorInput.addEventListener("input", updatePreview);
-  borderThicknessInput.addEventListener("input", () => {
-    borderVal.textContent = borderThicknessInput.value;
-    updatePreview();
-  });
-
-  downloadBtns.forEach(btn => {
-    btn.addEventListener("click", () => {
-      const format = btn.getAttribute("data-format");
-      const mimeType = `image/${format}`;
-      const name1 = img1Input.files[0]?.name.split(".")[0] || "img1";
-      const name2 = img2Input.files[0]?.name.split(".")[0] || "img2";
-      const filename = `${name1}_${name2}_merged.${format}`;
-
-      canvas.toBlob(blob => {
         const link = document.createElement("a");
-        link.download = filename;
-        link.href = URL.createObjectURL(blob);
+        link.download = "image_with_border.png";
+        link.href = canvas.toDataURL("image/png");
         link.click();
-      }, mimeType);
-    });
-  });
+      };
 
-  copyBtn.addEventListener("click", async () => {
-    try {
-      canvas.toBlob(async (blob) => {
-        if (!blob) return alert("Could not generate image blob.");
-        if (navigator.clipboard && window.ClipboardItem) {
-          const clipboardItem = new ClipboardItem({ [blob.type]: blob });
-          await navigator.clipboard.write([clipboardItem]);
-          copyBtn.textContent = "✅ Copied!";
-          setTimeout(() => copyBtn.textContent = "Copy to Clipboard", 2000);
-        } else {
-          alert("Clipboard copy is not supported in your browser.");
-        }
-      }, "image/png");
-    } catch (err) {
-      alert("Clipboard copy failed: " + err.message);
-    }
-  });
-</script>
+      img.src = imagePreview.src;
+    });
+  </script>
 
 </body>
 </html>
