@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Merge Images Online</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f5f6f7;
+      margin: 0;
+      padding: 30px;
+    }
+
+    .main {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      max-width: 1200px;
+      margin: auto;
+    }
+
+    .tool-panel {
+      
+      padding: 25px;
+      border-radius: 12px;
+      
+    }
+
+    .preview-panel {
+      background: #ededed;
+      padding: 25px;
+      border-radius: 12px;
+     
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    h1 {
+      text-align: center;
+      font-size: 1.8rem;
+      margin-bottom: 30px;
+      grid-column: span 2;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    label {
+      font-weight: 500;
+      display: block;
+      margin-bottom: 8px;
+    }
+
+    .image-upload-box {
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .image-preview {
+      width: 60px;
+      height: 60px;
+      border-radius: 1px;
+      object-fit: cover;
+      border: 1px solid #ddd;
+    }
+
+    .remove-btn {
+      background: #ff4444;
+      color: #fff;
+      border: none;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 13px;
+      cursor: pointer;
+      display: none;
+    }
+
+    .custom-file {
+      flex-grow: 1;
+      position: relative;
+      height: 44px;
+      border: 2px dashed #ccc;
+      border-radius: 8px;
+      background: #f9f9f9;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+
+    .custom-file input[type="file"] {
+      position: absolute;
+      opacity: 0;
+      width: 100%;
+      height: 100%;
+      cursor: pointer;
+    }
+
+    .custom-file span {
+      pointer-events: none;
+      font-size: 14px;
+      color: #555;
+    }
+
+    select, input[type="color"], input[type="range"] {
+      width: 100%;
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      font-size: 15px;
+    }
+
+    canvas {
+      max-width: 100%;
+      margin-top: 20px;
+      border-radius: 12px;
+      background: #f3f3f3;
+    }
+
+    .actions {
+      margin-top: 20px;
+      text-align: center;
+    }
+
+    .actions button {
+      padding: 12px 20px;
+      font-size: 15px;
+      border: none;
+      border-radius: 8px;
+      margin: 5px;
+      cursor: pointer;
+    }
+
+    .download-btn {
+      background-color: #007bff;
+      color: #fff;
+    }
+
+    .copy-btn {
+      background-color: #28a745;
+      color: #fff;
+    }
+
+    @media (max-width: 768px) {
+      .main {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Merge direction icons */
+    .direction-toggle {
+      display: flex;
+      gap: 10px;
+    }
+
+    .direction-btn {
+      background: #eee;
+      border: 2px solid #ccc;
+      padding: 10px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .direction-btn svg {
+      display: block;
+    }
+
+    .direction-btn.active {
+      background-color: #007bff;
+      border-color: #007bff;
+    }
+
+    .direction-btn.active svg path {
+      stroke: #fff;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Merge Images Online</h1>
+
+  <div class="main">
+    <div class="tool-panel">
+      <div class="form-group">
+        <label>Upload First Image</label>
+        <div class="image-upload-box">
+          <img id="img1-preview" class="image-preview" style="display:none" />
+          <div class="custom-file">
+            <input type="file" id="img1" accept="image/*" />
+            <span id="img1-label">Choose Image</span>
+          </div>
+          <button class="remove-btn" id="remove1" onclick="removeImage(1)">❌</button>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Upload Second Image</label>
+        <div class="image-upload-box">
+          <img id="img2-preview" class="image-preview" style="display:none" />
+          <div class="custom-file">
+            <input type="file" id="img2" accept="image/*" />
+            <span id="img2-label">Choose Image</span>
+          </div>
+          <button class="remove-btn" id="remove2" onclick="removeImage(2)">❌</button>
+        </div>
+      </div>
+
+      <div class="form-group">
+       <label>Merge Direction</label>
+       <div class="direction-toggle">
+    <button id="horizontalBtn" class="direction-btn active" data-layout="horizontal" title="Horizontal Merge">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-phone-landscape" viewBox="0 0 16 16">
+        <path d="M1 4.5a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v6a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1zm-1 6a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-6a2 2 0 0 0-2-2H2a2 2 0 0 0-2 2z"/>
+        <path d="M14 7.5a1 1 0 1 0-2 0 1 1 0 0 0 2 0"/>
+      </svg>
+    </button>
+    <button id="verticalBtn" class="direction-btn" data-layout="vertical" title="Vertical Merge">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-phone" viewBox="0 0 16 16">
+        <path d="M11 1a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1zM5 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2z"/>
+        <path d="M8 14a1 1 0 1 0 0-2 1 1 0 0 0 0 2"/>
+      </svg>
+    </button>
+  </div>
+</div>
+
+
+      <div class="form-group">
+        <label>Border Color</label>
+        <input type="color" id="borderColor" value="#000000" />
+      </div>
+
+      <div class="form-group">
+        <label>Border Thickness (<span id="borderVal">0</span>px)</label>
+        <input type="range" id="borderThickness" min="0" max="20" value="0" />
+      </div>
+    </div>
+
+    <div class="preview-panel">
+	        <label>Preview</label>
+
+      <canvas id="previewCanvas"></canvas>
+
+      <div class="actions">
+        <select id="formatSelect">
+          <option value="png">PNG</option>
+          <option value="jpeg">JPG</option>
+          <option value="webp">WebP</option>
+        </select>
+        <button id="downloadBtn" class="download-btn" disabled>Download</button>
+        <button id="copyBtn" class="copy-btn" disabled>Copy to Clipboard</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const img1Input = document.getElementById("img1");
+    const img2Input = document.getElementById("img2");
+    const img1Preview = document.getElementById("img1-preview");
+    const img2Preview = document.getElementById("img2-preview");
+    const borderThicknessInput = document.getElementById("borderThickness");
+    const borderColorInput = document.getElementById("borderColor");
+    const borderVal = document.getElementById("borderVal");
+    const canvas = document.getElementById("previewCanvas");
+    const ctx = canvas.getContext("2d");
+    const downloadBtn = document.getElementById("downloadBtn");
+    const formatSelect = document.getElementById("formatSelect");
+    const copyBtn = document.getElementById("copyBtn");
+
+    const img1Label = document.getElementById("img1-label");
+    const img2Label = document.getElementById("img2-label");
+    const remove1Btn = document.getElementById("remove1");
+    const remove2Btn = document.getElementById("remove2");
+
+    let img1 = new Image();
+    let img2 = new Image();
+    let img1Loaded = false;
+    let img2Loaded = false;
+
+    let layout = "horizontal";
+    const horizontalBtn = document.getElementById("horizontalBtn");
+    const verticalBtn = document.getElementById("verticalBtn");
+
+    horizontalBtn.addEventListener("click", () => {
+      layout = "horizontal";
+      horizontalBtn.classList.add("active");
+      verticalBtn.classList.remove("active");
+      updatePreview();
+    });
+
+    verticalBtn.addEventListener("click", () => {
+      layout = "vertical";
+      verticalBtn.classList.add("active");
+      horizontalBtn.classList.remove("active");
+      updatePreview();
+    });
+
+    function removeImage(num) {
+      if (num === 1) {
+        img1Input.value = "";
+        img1Preview.style.display = "none";
+        img1Label.textContent = "Choose Image";
+        remove1Btn.style.display = "none";
+        img1Loaded = false;
+      } else {
+        img2Input.value = "";
+        img2Preview.style.display = "none";
+        img2Label.textContent = "Choose Image";
+        remove2Btn.style.display = "none";
+        img2Loaded = false;
+      }
+      updatePreview();
+    }
+
+    function handleImageUpload(input, image, label, preview, removeBtn, onLoad) {
+      const file = input.files[0];
+      if (file && file.type.startsWith("image/")) {
+        label.textContent = file.name;
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          image.src = e.target.result;
+          preview.src = e.target.result;
+          preview.style.display = "block";
+          removeBtn.style.display = "inline-block";
+          image.onload = onLoad;
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+
+    function resizeImage(img, width, height) {
+      const tempCanvas = document.createElement("canvas");
+      tempCanvas.width = width;
+      tempCanvas.height = height;
+      tempCanvas.getContext("2d").drawImage(img, 0, 0, width, height);
+      const newImg = new Image();
+      newImg.src = tempCanvas.toDataURL();
+      return newImg;
+    }
+
+    function updatePreview() {
+      if (!img1Loaded || !img2Loaded) {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        downloadBtn.disabled = true;
+        copyBtn.disabled = true;
+        return;
+      }
+
+      const border = parseInt(borderThicknessInput.value);
+      const color = borderColorInput.value;
+
+      let a = img1, b = img2;
+
+      if (layout === "horizontal") {
+        const h = Math.max(a.height, b.height);
+        a = resizeImage(a, (a.width * h) / a.height, h);
+        b = resizeImage(b, (b.width * h) / b.height, h);
+      } else {
+        const w = Math.max(a.width, b.width);
+        a = resizeImage(a, w, (a.height * w) / a.width);
+        b = resizeImage(b, w, (b.height * w) / b.width);
+      }
+
+      a.onload = () => {
+        b.onload = () => {
+          let width, height;
+          if (layout === "horizontal") {
+            width = a.width + b.width + border * 3;
+            height = a.height + border * 2;
+          } else {
+            width = a.width + border * 2;
+            height = a.height + b.height + border * 3;
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+
+          ctx.fillStyle = color;
+          ctx.fillRect(0, 0, width, height);
+
+          if (layout === "horizontal") {
+            ctx.drawImage(a, border, border);
+            ctx.drawImage(b, a.width + border * 2, border);
+          } else {
+            ctx.drawImage(a, border, border);
+            ctx.drawImage(b, border, a.height + border * 2);
+          }
+
+          downloadBtn.disabled = false;
+          copyBtn.disabled = false;
+        };
+      };
+    }
+
+    img1Input.addEventListener("change", () => {
+      handleImageUpload(img1Input, img1, img1Label, img1Preview, remove1Btn, () => {
+        img1Loaded = true;
+        updatePreview();
+      });
+    });
+
+    img2Input.addEventListener("change", () => {
+      handleImageUpload(img2Input, img2, img2Label, img2Preview, remove2Btn, () => {
+        img2Loaded = true;
+        updatePreview();
+      });
+    });
+
+    borderColorInput.addEventListener("input", updatePreview);
+    borderThicknessInput.addEventListener("input", () => {
+      borderVal.textContent = borderThicknessInput.value;
+      updatePreview();
+    });
+
+    downloadBtn.addEventListener("click", () => {
+      const format = formatSelect.value;
+      const mimeType = `image/${format}`;
+      const name1 = img1Input.files[0]?.name.split(".")[0] || "img1";
+      const name2 = img2Input.files[0]?.name.split(".")[0] || "img2";
+      const filename = `${name1}_${name2}_merged.${format}`;
+
+      canvas.toBlob(blob => {
+        const link = document.createElement("a");
+        link.download = filename;
+        link.href = URL.createObjectURL(blob);
+        link.click();
+      }, mimeType);
+    });
+
+    copyBtn.addEventListener("click", async () => {
+      try {
+        canvas.toBlob(async (blob) => {
+          if (!blob) {
+            alert("Could not generate image blob.");
+            return;
+          }
+
+          if (navigator.clipboard && window.ClipboardItem) {
+            const clipboardItem = new ClipboardItem({ [blob.type]: blob });
+            await navigator.clipboard.write([clipboardItem]);
+
+            copyBtn.textContent = "✅ Copied!";
+            setTimeout(() => copyBtn.textContent = "Copy to Clipboard", 2000);
+          } else {
+            alert("Clipboard copy is not supported in your browser.");
+          }
+        }, "image/png");
+      } catch (err) {
+        alert("Clipboard copy failed: " + err.message);
+      }
+    });
+  </script>
+</body>
+</html>
