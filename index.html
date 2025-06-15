@@ -180,6 +180,13 @@
     .direction-btn.active svg path {
       stroke: #fff;
     }
+	  .download-options {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
   </style>
 </head>
 <body>
@@ -248,14 +255,14 @@
       <canvas id="previewCanvas"></canvas>
 
       <div class="actions">
-        <select id="formatSelect">
-          <option value="png">PNG</option>
-          <option value="jpeg">JPG</option>
-          <option value="webp">WebP</option>
-        </select>
-        <button id="downloadBtn" class="download-btn" disabled>Download</button>
-        <button id="copyBtn" class="copy-btn" disabled>Copy to Clipboard</button>
-      </div>
+  <div class="download-options">
+    <button class="download-btn" data-format="png" disabled>Download PNG</button>
+    <button class="download-btn" data-format="jpeg" disabled>Download JPG</button>
+    <button class="download-btn" data-format="webp" disabled>Download WebP</button>
+  </div>
+  <button id="copyBtn" class="copy-btn" disabled>Copy to Clipboard</button>
+</div>
+
     </div>
   </div>
 
