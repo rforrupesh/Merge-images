@@ -1,90 +1,44 @@
 <!DOCTYPE html>
 <html>
 <head>
+<meta charset="UTF-8">
+<title>GPS Camera Map</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Working GPS Map Camera</title>
 
 <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
 
 <style>
-body{
-    margin:0;
-    font-family:Arial;
-    background:#000;
-    color:white;
-}
-
-#captureArea{
-    max-width:500px;
-    margin:auto;
-}
-
-.camera-container{
-    position:relative;
-}
-
-video{
-    width:100%;
-    display:block;
-}
-
-.overlay{
-    position:absolute;
-    top:0;
-    left:0;
-    width:100%;
-    background:rgba(0,0,0,0.6);
-    padding:10px;
-    font-size:14px;
-}
-
-#map{
-    height:220px;
-}
-
-.controls{
-    text-align:center;
-    padding:10px;
-}
-
-button{
-    padding:10px 20px;
-    margin:5px;
-    border:none;
-    background:#4CAF50;
-    color:white;
-    border-radius:5px;
-    font-size:16px;
-}
+body { margin: 0; font-family: Arial, sans-serif; background: #000; color: #fff; }
+#captureArea { width: 100%; max-width: 480px; margin: auto; }
+video { width: 100%; }
+.overlay { position: relative; padding: 10px; background: rgba(0,0,0,0.7); font-size: 14px; }
+#map { height: 240px; margin-top: 10px; }
+button { padding: 12px; background: #4CAF50; border: none; color: white; border-radius: 5px; margin: 8px; width: calc(50% - 16px); font-size: 16px; }
+button:hover { background: #45a049; }
+.controls { text-align: center; }
 </style>
 </head>
 
 <body>
 
 <div id="captureArea">
-
-    <div class="camera-container">
-        <div class="overlay">
-            <div>Lat: <span id="lat">--</span></div>
-            <div>Lon: <span id="lon">--</span></div>
-            <div>Accuracy: <span id="accuracy">--</span></div>
-            <div id="time">--</div>
-            <div id="status"></div>
-        </div>
-        <video id="video" autoplay playsinline></video>
+    <div class="overlay">
+        📍 Lat: <span id="lat">--</span><br>
+        📍 Lon: <span id="lon">--</span><br>
+        🎯 Accuracy: <span id="accuracy">--</span><br>
+        🕒 <span id="time">--</span>
     </div>
 
+    <video id="video" autoplay playsinline></video>
     <div id="map"></div>
-
 </div>
 
 <div class="controls">
     <button onclick="startApp()">Start</button>
-    <button onclick="capture()">Capture</button>
+    <button onclick="capturePhoto()">Capture Photo</button>
 </div>
 
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-<script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
 
 <script>
 let map, marker, circle;
@@ -95,80 +49,59 @@ function startApp(){
     startClock();
 }
 
-// CAMERA (simplified for compatibility)
 function startCamera(){
-    navigator.mediaDevices.getUserMedia({ video: true })
-    .then(stream=>{
-        document.getElementById("video").srcObject = stream;
-        document.getElementById("status").innerText = "Camera Started";
-    })
-    .catch(err=>{
-        document.getElementById("status").innerText = "Camera Error: " + err.message;
-    });
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
+    .then(stream => document.getElementById("video").srcObject = stream)
+    .catch(err => alert("Camera access denied."));
 }
 
-// GPS (watchPosition = more reliable)
 function startGPS(){
+    if(!navigator.geolocation) return alert("Geolocation unsupported");
 
-    if(!navigator.geolocation){
-        alert("Geolocation not supported");
-        return;
-    }
+    navigator.geolocation.watchPosition(pos => {
+        const lat = pos.coords.latitude;
+        const lon = pos.coords.longitude;
+        const acc = pos.coords.accuracy;
 
-    navigator.geolocation.watchPosition(position=>{
-
-        const lat = position.coords.latitude;
-        const lon = position.coords.longitude;
-        const accuracy = position.coords.accuracy;
-
-        document.getElementById("lat").innerText = lat.toFixed(6);
-        document.getElementById("lon").innerText = lon.toFixed(6);
-        document.getElementById("accuracy").innerText = accuracy.toFixed(1) + " m";
+        document.getElementById("lat").textContent = lat.toFixed(6);
+        document.getElementById("lon").textContent = lon.toFixed(6);
+        document.getElementById("accuracy").textContent = acc.toFixed(1) + " m";
 
         if(!map){
-            map = L.map('map').setView([lat, lon], 18);
-
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
-                attribution:'© OpenStreetMap'
+            map = L.map('map').setView([lat, lon], 17);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap'
             }).addTo(map);
         }
-
         if(marker) map.removeLayer(marker);
         if(circle) map.removeLayer(circle);
 
         marker = L.marker([lat, lon]).addTo(map);
+        circle = L.circle([lat, lon], { radius: acc }).addTo(map);
 
-        circle = L.circle([lat, lon], {
-            radius: accuracy,
-            fillOpacity: 0.2
-        }).addTo(map);
-
-    },{
-        enableHighAccuracy:true,
-        maximumAge:0,
-        timeout:15000
-    });
+    }, { enableHighAccuracy: true, maximumAge: 0, timeout: 15000 });
 }
 
-// Clock
 function startClock(){
-    setInterval(()=>{
-        document.getElementById("time").innerText =
-            new Date().toLocaleString();
-    },1000);
+    setInterval(() => {
+        document.getElementById("time").textContent = new Date().toLocaleString();
+    }, 1000);
 }
 
-// Capture
-function capture(){
-    html2canvas(document.getElementById("captureArea"))
-    .then(canvas=>{
-        let link = document.createElement("a");
-        link.download = "GPS_Camera.png";
-        link.href = canvas.toDataURL();
-        link.click();
-    });
+function capturePhoto(){
+    // Capture only camera + overlays (not map)
+    const video = document.getElementById("video");
+    const canvas = document.createElement("canvas");
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    canvas.getContext("2d").drawImage(video, 0, 0);
+
+    const link = document.createElement("a");
+    link.download = "camera_photo.png";
+    link.href = canvas.toDataURL();
+    link.click();
 }
 </script>
 
 </body>
-  </html>
+</html>
